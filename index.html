@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whack-a-Mole</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #66a9e7;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="400"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const moleWidth = 100;
+        const moleHeight = 100;
+        const moleCount = 10; // Number of moles
+        const moleImage = new Image();
+        moleImage.src = 'oikaw.png'; // Path to your mole image
+        let moles = [];
+        let score = 0;
+        let timeLeft = 30; // Initial time limit in seconds
+        let difficultyLevel = 1; // Initial difficulty level
+
+        // Define levels with corresponding time limits and mole counts
+        const levels = [
+            { timeLimit: 30, moleCount: 10 }, // Level 1
+            { timeLimit: 20, moleCount: 15 }, // Level 2
+            { timeLimit: 15, moleCount: 20 }  // Level 3
+        ];
+
+        function drawMole(x, y) {
+            ctx.drawImage(moleImage, x, y, moleWidth, moleHeight);
+        }
+
+        function drawScore() {
+            ctx.fillStyle = "#000000"; // Black color
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + score, 10, 30);
+        }
+
+        function drawTime() {
+            ctx.fillStyle = "#000000"; // Black color
+            ctx.font = "20px Arial";
+            ctx.fillText("Time: " + timeLeft, canvas.width - 100, 30);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let mole of moles) {
+                drawMole(mole.x, mole.y);
+            }
+
+            drawScore();
+            drawTime();
+        }
+
+        function createMoles() {
+            moles = [];
+            for (let i = 0; i < levels[difficultyLevel - 1].moleCount; i++) {
+                const x = Math.floor(Math.random() * (canvas.width - moleWidth));
+                const y = Math.floor(Math.random() * (canvas.height - moleHeight));
+                moles.push({ x, y });
+            }
+        }
+
+        function whack(event) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            for (let i = 0; i < moles.length; i++) {
+                const mole = moles[i];
+                if (mouseX >= mole.x && mouseX <= mole.x + moleWidth &&
+                    mouseY >= mole.y && mouseY <= mole.y + moleHeight) {
+                    moles.splice(i, 1);
+                    score++;
+                }
+            }
+
+            draw();
+        }
+
+        canvas.addEventListener('mousedown', whack);
+
+        function countdown() {
+            timeLeft--;
+            if (timeLeft === 0) {
+                clearInterval(timer);
+                alert("Time's up! Your score: " + score);
+                // Restart the game or show game over screen
+            } else {
+                draw();
+            }
+        }
+
+        function startGame() {
+            score = 0;
+            timeLeft = levels[difficultyLevel - 1].timeLimit;
+            createMoles();
+            draw();
+            const timer = setInterval(countdown, 1000);
+        }
+
+        moleImage.onload = startGame;
+
+        // Change difficulty level and start game when level button is clicked
+        document.getElementById('level1').addEventListener('click', () => {
+            difficultyLevel = 1;
+            startGame();
+        });
+
+        document.getElementById('level2').addEventListener('click', () => {
+            difficultyLevel = 2;
+            startGame();
+        });
+
+        document.getElementById('level3').addEventListener('click', () => {
+            difficultyLevel = 3;
+            startGame();
+        });
+    </script>
+
+    <!-- Add buttons for different difficulty levels -->
+    <div>
+        <button id="level1">Level 1</button>
+        <button id="level2">Level 2</button>
+        <button id="level3">Level 3</button>
+    </div>
+</body>
+</html>
